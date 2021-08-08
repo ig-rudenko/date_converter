@@ -170,9 +170,3 @@ class DateConverter:
             return self.__rus_month_list2[self.date.month - 1]
         elif item == 'year':
             return self.date.year
-
-
-date1 = DateConverter('12 мар 21')
-
-
-print(date1['month'])
