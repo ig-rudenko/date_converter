@@ -31,6 +31,8 @@ class DateConverter:
     __eng_month_regex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
     __rus_month_list = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября',
                         'октября', 'ноября', 'декабря']
+    __rus_month_list2 = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь',
+                         'октябрь', 'ноябрь', 'декабрь']
 
     def __init__(self, date_string: str):
         self.date: datetime.date
@@ -44,7 +46,7 @@ class DateConverter:
         self.setdate(date_string)
 
     def setdate(self, date_string):
-        for i, regex in enumerate(DateConverter.__date_regex, start=1):
+        for i, regex in enumerate(self.__date_regex, start=1):
             date_f = findall(
                 regex,
                 date_string
@@ -52,18 +54,18 @@ class DateConverter:
             if date_f and len(date_f) == 1:
                 try:
                     if i < 3:  # D M Y
-                        year = DateConverter.__year_format(date_f[0][2])
-                        month = DateConverter.__month_in_digit(date_f[0][1])
+                        year = self.__year_format(date_f[0][2])
+                        month = self.__month_in_digit(date_f[0][1])
                         day = int(date_f[0][0])
 
                     elif 3 <= i <= 5:   # Y D M
-                        year = DateConverter.__year_format(date_f[0][0])
-                        month = DateConverter.__month_in_digit(date_f[0][2])
+                        year = self.__year_format(date_f[0][0])
+                        month = self.__month_in_digit(date_f[0][2])
                         day = int(date_f[0][1])
 
                     elif i > 5:  # D M
                         year = datetime.date.today().year
-                        month = DateConverter.__month_in_digit(date_f[0][1])
+                        month = self.__month_in_digit(date_f[0][1])
                         day = int(date_f[0][0])
 
                     try:
@@ -104,7 +106,7 @@ class DateConverter:
     def __str__(self):
         if not self.__dict__.get('date'):
             return "None"
-        return f"{self.date.day} {DateConverter.__rus_month_list[self.date.month - 1]} {self.date.year}"
+        return f"{self.date.day} {self.__rus_month_list[self.date.month - 1]} {self.date.year}"
 
     def __add_sub(self, other, mode: str) -> object:
         if isinstance(other, int):
@@ -160,3 +162,17 @@ class DateConverter:
 
     def __isub__(self, other):
         return self.__add_sub(other, '-')
+
+    def __getitem__(self, item):
+        if item == 'day':
+            return self.date.day
+        elif item == 'month':
+            return self.__rus_month_list2[self.date.month - 1]
+        elif item == 'year':
+            return self.date.year
+
+
+date1 = DateConverter('12 мар 21')
+
+
+print(date1['month'])
