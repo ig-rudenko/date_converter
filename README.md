@@ -2,6 +2,11 @@
 
 Преобразует различные форматы дат к единому
 
+## Установка
+
+    pip install dateconverter
+
+---
 
 ```python
 from dateconverter import DateConverter
@@ -29,6 +34,7 @@ date += '2m'  # 1 мая 2021
 date += 12    # 13 мая 2021
 date -= '1y'  # 13 мая 2020
 ```
+---
 
 ### Примеры преобразований
 
