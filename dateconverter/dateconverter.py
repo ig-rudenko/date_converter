@@ -3,29 +3,29 @@ from re import findall
 
 
 class DateConverter:
-    __rus_letters = 'абвгдеёжзиклмнопрстуфхцчшщьыъэюяАБВГДЕЁЖЗИКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯ'
-    __regex_symbols = r'''\.\!\"\#\$\%\&\'\(\)\*\+\,\-\/\\\:\;\<\=\>\?\@\[\]\^\_\`\{\|\}\~'''
+    __rs = r'\.\,\-\/\\\_'
     __date_regex = [
-        r'(\d+' + rf')[\s{__regex_symbols}]*([а-яА-Яa-zA-Z]' + '{3,}' + rf')[\s{__regex_symbols}]*(\d' + '{2,4}' + rf')[\s{__regex_symbols}]*',
         # D Month Y
+        r'(\d+)'+rf'[{__rs}:]'+r'{0,2}\s*([а-яА-Яa-zA-Z]{3,})'+rf'[{__rs}:]'+r'{0,2}\s*(\d{2,4})',
 
-        r'(\d+' + rf')[\s{__regex_symbols}]+(\d' + '{1,2}' + rf')[\s{__regex_symbols}]+' + r'(\d{2,4})',
-        # D M Y
+        # D M Y OR (D M Y)
+        r'(?<!\d)\(?(\d{1,2})'+rf'[\s{__rs}]'+r'{1}\s*(\d{1,2})'+rf'[\s{__rs}]'+r'{1}\s*(\d{2,4})\)?',
 
-        r'(\d' + '{4}' + rf')\s*[гy]*[\s{__regex_symbols}]+(\d+' + rf')[\s{__regex_symbols}]+([а-яА-Я]' + '{3,})',
         # Y D Month
+        r'(\d' + '{4}' + rf')\s*[гy]*[\s{__rs}]+(\d+' + rf')[\s{__rs}]+([а-яА-Я]' + '{3,})',
 
-        r'(\d' + '{2}' + rf')\s*[гy][\s{__regex_symbols}]+(\d+' + rf')[\s{__regex_symbols}]+([а-яА-Я]' + '{3,})',
-        # Y D Month
+        # Yг D Month
+        r'(\d' + '{2}' + rf')\s*[гy][\s{__rs}]+(\d+' + rf')[\s{__rs}]+([а-яА-Я]' + '{3,})',
 
-        r'(\d' + '{2,4}' + rf')\s*[гy]*[\s{__regex_symbols}]+(\d+' + rf')[\s{__regex_symbols}]+(\d' + '{1,2})',
         # Y D M
+        r'(?<!\d)(\d{4})' + rf'\s*[гy]*[\s{__rs}](\d+' + rf')[\s{__rs}]+(\d' + '{1,2})',
 
-        r'(\d+' + rf')[\s{__regex_symbols}]*([а-яА-Яa-zA-Z]' + '{3,}' + rf')[\s{__regex_symbols}]*',
         # D Month
+        r'(\d+' + rf')[{__rs}]*\s*([а-яА-Яa-zA-Z]' + '{3,})',
 
-        r'(\d+' + rf')[\s{__regex_symbols}]+(\d' + '{1,2})'
         # D M
+        r'\s(\d+' + rf')[{__rs}]*\s*(\d' + '{1,2})' + rf'[{__rs}]\s*'
+
     ]
     __rus_month_regex = ['янв', 'фев', 'мар', 'апр', 'май|мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']
     __eng_month_regex = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
@@ -58,10 +58,15 @@ class DateConverter:
                         month = self.__month_in_digit(date_f[0][1])
                         day = int(date_f[0][0])
 
-                    elif 3 <= i <= 5:   # Y D M
+                    elif 3 <= i <= 4:   # Y D M
                         year = self.__year_format(date_f[0][0])
                         month = self.__month_in_digit(date_f[0][2])
                         day = int(date_f[0][1])
+
+                    elif i == 5:   # Y M D
+                        year = self.__year_format(date_f[0][0])
+                        month = self.__month_in_digit(date_f[0][1])
+                        day = int(date_f[0][2])
 
                     elif i > 5:  # D M
                         year = datetime.date.today().year
@@ -74,7 +79,6 @@ class DateConverter:
                     except ValueError as ve:
                         if str(ve) == 'day is out of range for month':
                             self.date = datetime.date(year, month, 1) + datetime.timedelta(days=day-1)
-
                 except TypeError:
                     pass
                 break
@@ -95,7 +99,7 @@ class DateConverter:
 
     @staticmethod
     def __year_format(year):
-        if len(year) == 4:
+        if len(year) >= 3:
             return int(year)
         elif len(year) == 2:
             if 2000 + int(year) <= datetime.date.today().year + 10:

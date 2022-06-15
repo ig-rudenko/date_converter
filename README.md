@@ -2,39 +2,32 @@
 
 Преобразует различные форматы дат к единому
 
-## Установка
-
-    pip install dateconverter
-
----
-
 ```python
 from dateconverter import DateConverter
 
 date1 = DateConverter('12 мар 21')
 
-date1           # 12 марта 2021
-type(date1)     # <class 'dateconverter.DateConverter'>
+date1  # 12 марта 2021
+type(date1)  # <class 'dateconverter.DateConverter'>
 
-date1['day']    # 12
+date1['day']  # 12
 date1['month']  # март
-date1['year']   # 2021
+date1['year']  # 2021
 
 # Также возвращает дату в виде объекта класса datetime
-date1.date          # 2021-03-12
-type(date1.date)    # <class 'datetime.date'>
+date1.date  # 2021-03-12
+type(date1.date)  # <class 'datetime.date'>
 ```
 ### Сложение дат
 
 ```python
-from dateconverter import DateConverter
+from dateconverter.dateconverter import DateConverter
 
 date = DateConverter('1 mar 21')  # 1 марта 2021
 date += '2m'  # 1 мая 2021
-date += 12    # 13 мая 2021
+date += 12  # 13 мая 2021
 date -= '1y'  # 13 мая 2020
 ```
----
 
 ### Примеры преобразований
 
