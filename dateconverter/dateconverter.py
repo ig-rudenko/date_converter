@@ -46,6 +46,9 @@ class DateConverter:
         self.setdate(date_string)
 
     def setdate(self, date_string):
+        if date_string == 'now' or date_string == 'today' or date_string == 'сегодня':
+            self.date = datetime.date.today()
+
         for i, regex in enumerate(self.__date_regex, start=1):
             date_f = findall(
                 regex,
@@ -166,6 +169,36 @@ class DateConverter:
 
     def __isub__(self, other):
         return self.__add_sub(other, '-')
+
+    def __measure(self, other, p):
+        if isinstance(other, datetime.datetime):
+            return eval(f"self.date {p} datetime.date(other.year, other.month, other.day)")
+        elif isinstance(other, datetime.date):
+            return eval(f"other {p} self.date")
+        elif isinstance(other, str):
+            return eval(f"DateConverter(other).date {p} self.date")
+        elif isinstance(other, DateConverter):
+            return eval(f"other.date {p} self.date")
+        else:
+            raise ValueError(f'Нельзя сравнивать дату с "{other.__class__.__name__}"')
+
+    def __eq__(self, other):
+        return self.__measure(other, '==')
+
+    def __lt__(self, other):
+        return self.__measure(other, '<')
+
+    def __le__(self, other):
+        return self.__measure(other, '<=')
+
+    def __gt__(self, other):
+        return self.__measure(other, '>')
+
+    def __ge__(self, other):
+        return self.__measure(other, '>=')
+
+    def __ne__(self, other):
+        return self.__measure(other, '!=')
 
     def __getitem__(self, item):
         if item == 'day':
