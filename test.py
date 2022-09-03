@@ -23,6 +23,7 @@ class TestDateConverter(unittest.TestCase):
         self.assertEqual(str(DateConverter('k;jhj_12_may_2021_')), '12 мая 2021', 'Должно быть ')
         self.assertEqual(str(DateConverter('13 МАЯ')), '13 мая 2022', 'Должно быть ')
         self.assertEqual(str(DateConverter('2022Г 13 ИЮНЯ')), '13 июня 2022', 'Должно быть ')
+        self.assertEqual(str(DateConverter('2022-12-05')), '5 декабря 2022', 'Должно быть ')
 
         # D M Y
         self.assertEqual(str(DateConverter('%12_05_2021%')), '12 мая 2021', 'Должно быть ')
