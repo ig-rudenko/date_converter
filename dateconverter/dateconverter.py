@@ -8,16 +8,16 @@ class DateConverter:
         # D Month Y
         r'(\d+)'+rf'[{__rs}:]'+r'{0,2}\s*([а-яА-Яa-zA-Z]{3,})'+rf'[{__rs}:]'+r'{0,2}\s*(\d{2,4})',
 
-        # D M Y OR (D M Y)
+        # D M Y or (D M Y)
         r'(?<!\d)\(?(\d{1,2})'+rf'[\s{__rs}]'+r'{1}\s*(\d{1,2})'+rf'[\s{__rs}]'+r'{1}\s*(\d{2,4})\)?',
 
         # Y D Month
-        r'(\d' + '{4}' + rf')\s*[гy]*[\s{__rs}]+(\d+' + rf')[\s{__rs}]+([а-яА-Я]' + '{3,})',
+        r'(\d' + '{4}' + rf')\s*[гy]*[\s{__rs}]+(\d+' + rf')[\s{__rs}]+([а-яА-Яa-zA-Z]' + '{3,})',
 
-        # Yг D Month
-        r'(\d' + '{2}' + rf')\s*[гy][\s{__rs}]+(\d+' + rf')[\s{__rs}]+([а-яА-Я]' + '{3,})',
+        # Y[гy] D Month
+        r'(\d' + '{2}' + rf')\s*[гy][\s{__rs}]+(\d+' + rf')[\s{__rs}]+([а-яА-Яa-zA-Z]' + '{3,})',
 
-        # Y D M
+        # Y M D
         r'(?<!\d)(\d{4})' + rf'\s*[гy]*[\s{__rs}](\d+' + rf')[\s{__rs}]+(\d' + '{1,2})',
 
         # D Month
@@ -34,8 +34,18 @@ class DateConverter:
     __rus_month_list2 = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь',
                          'октябрь', 'ноябрь', 'декабрь']
 
-    def __init__(self, date_string: str):
+    def __init__(self, date_string: str = ''):
+        if not isinstance(date_string, str):
+            raise ValueError('Необходимо передавать только строки')
+
+        if not date_string:
+            self.date = datetime.date.today()
+            return
+
         self.date: datetime.date
+        self.day = None
+        self.month = None
+        self.year = None
 
         if findall(r'[а-яА-Я]', date_string):
             self.__lang = 'rus'
@@ -71,12 +81,15 @@ class DateConverter:
                         month = self.__month_in_digit(date_f[0][1])
                         day = int(date_f[0][2])
 
-                    elif i > 5:  # D M
+                    else:  # D M
                         year = datetime.date.today().year
                         month = self.__month_in_digit(date_f[0][1])
                         day = int(date_f[0][0])
 
                     try:
+                        self.day = day
+                        self.month = self.__rus_month_list2[month - 1]
+                        self.year = year
                         self.date = datetime.date(year, month, day)
 
                     except ValueError as ve:
@@ -85,8 +98,6 @@ class DateConverter:
                 except TypeError:
                     pass
                 break
-            else:
-                continue
 
     @staticmethod
     def __month_in_digit(month):
@@ -116,12 +127,13 @@ class DateConverter:
         return f"{self.date.day} {self.__rus_month_list[self.date.month - 1]} {self.date.year}"
 
     def __add_sub(self, other, mode: str) -> object:
-        if isinstance(other, int):
+        if isinstance(other, int) or (isinstance(other, str) and other.isdigit()):
+            other = int(other)
             if mode == '+':
                 self.date += datetime.timedelta(days=other)
             elif mode == '-':
                 self.date -= datetime.timedelta(days=other)
-        elif isinstance(other, str) and findall(r'^\d+[dmyдмгл]$', other):
+        elif isinstance(other, str) and findall(r'^\d+\s*[dmyдмгл]$', other):
             # ДЕНЬ
             if other.endswith('d') or other.endswith('д'):
                 if mode == '+':
@@ -130,19 +142,27 @@ class DateConverter:
                     self.date -= datetime.timedelta(days=int(other[:-1]))
             # МЕСЯЦ
             elif other.endswith('m') or other.endswith('м'):
+
+                if mode == '+':
+                    month = self.date.month + int(other[:-1])  # текущий месяц + дополнительные
+                    year = self.date.year + month // 12
+                    month = month % 12
+                else:
+                    month = self.date.month - int(other[:-1])  # текущий месяц - дополнительные
+
+                    if month < 0:
+                        month = abs(month) + 1
+                        year = self.date.year - (month // 12 or 1)
+                        month = 13 - (month % 12 or 12)
+                    else:
+                        year = self.date.year
+
                 try:
-                    if mode == '+':
-                        months = self.date.month + int(other[:-1])  # текущий месяц + дополнительные
-                        year = self.date.year + months // 12
-                        month = months % 12
-                    elif mode == '-':
-                        months = abs(self.date.month - int(other[:-1]))  # текущий месяц - дополнительные
-                        year = self.date.year - (months // 12 + 1)
-                        month = 12 - (months % 12)
                     self.date = datetime.date(year, month, self.date.day)
                 except ValueError as ve:
                     if str(ve) == 'day is out of range for month':
                         self.date = datetime.date(year, month, 1) + datetime.timedelta(days=self.date.day-1)
+
             # ГОД
             elif other.endswith('y') or other.endswith('л') or other.endswith('г'):
                 if mode == '+':
@@ -174,11 +194,11 @@ class DateConverter:
         if isinstance(other, datetime.datetime):
             return eval(f"self.date {p} datetime.date(other.year, other.month, other.day)")
         elif isinstance(other, datetime.date):
-            return eval(f"other {p} self.date")
+            return eval(f"self.date {p} other")
         elif isinstance(other, str):
-            return eval(f"DateConverter(other).date {p} self.date")
+            return eval(f"self.date {p} DateConverter(other).date")
         elif isinstance(other, DateConverter):
-            return eval(f"other.date {p} self.date")
+            return eval(f"self.date {p}other.date")
         else:
             raise ValueError(f'Нельзя сравнивать дату с "{other.__class__.__name__}"')
 
@@ -200,10 +220,3 @@ class DateConverter:
     def __ne__(self, other):
         return self.__measure(other, '!=')
 
-    def __getitem__(self, item):
-        if item == 'day':
-            return self.date.day
-        elif item == 'month':
-            return self.__rus_month_list2[self.date.month - 1]
-        elif item == 'year':
-            return self.date.year
