@@ -10,6 +10,8 @@ class TestDateConverter(unittest.TestCase):
             DateConverter(123)
         with self.assertRaises(ValueError):
             DateConverter(['123'])
+        with self.assertRaises(ValueError):
+            DateConverter({'123'})
         with self.assertRaises(OverflowError):
             DateConverter('421 may 2031') - 111111111111111
         with self.assertRaises(OverflowError):
