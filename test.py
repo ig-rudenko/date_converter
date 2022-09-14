@@ -4,6 +4,7 @@ from dateconverter.dateconverter import DateConverter
 
 
 class TestDateConverter(unittest.TestCase):
+    """Тесты"""
 
     def test_raises(self):
         with self.assertRaises(ValueError):
