@@ -109,7 +109,7 @@ class TestDateConverter(unittest.TestCase):
     def test_get_attr(self):
         self.assertTrue(DateConverter('12 янв 2020').day == 12)
         self.assertTrue(DateConverter('12 янв 2020').month == 'январь')
-        self.assertTrue(DateConverter('12 янв 2021').year == 2020)
+        self.assertTrue(DateConverter('12 янв 2020').year == 2020)
 
 
 if __name__ == '__main__':
