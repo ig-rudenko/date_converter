@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='dateconverter',
-    version='0.5',
+    version='0.6',
     packages=['dateconverter'],
     url='https://github.com/ig-rudenko/date_converter',
     license='Apache 2.0',
